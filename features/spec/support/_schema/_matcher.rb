@@ -9,8 +9,8 @@ RSpec::Matchers.define :match_response_schema do |schema|
         # p File.exist?(schema_path)  # returns true
         # First parameter is either a file path or the actual schema itself
         # for some reason without line 16, the file couldn't be loaded/found
-        # schema = File.read(schema_path)
-        JSON::Validator.validate!(schema_path, response.body, strict: true)
+        schema = File.read(schema_path)
+        JSON::Validator.validate!(schema, response.body, strict: true)
     end
 end
   
