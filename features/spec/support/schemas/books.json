@@ -1,0 +1,43 @@
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "title",
+            "author",
+            "genre",
+            "isbn",
+            "language",
+            "created_at",
+            "updated_at"
+        ],
+        "properties": {
+            "title": {
+                "type": "string"
+            },
+            "id": {
+                "type": "integer"
+            },
+            "author": {
+                "type": "string"
+            },
+            "genre": {
+                "type": "string"
+            },
+            "isbn": {
+                "type": "string"
+            },
+            "language": {
+                "type": "string"
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updated_at": {
+                "type": "string",
+                "format": "date-time"
+            }
+        }
+    }
+}

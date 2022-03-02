@@ -4,58 +4,106 @@ require 'uri'
 require 'json-schema'
 require 'json'
 
-  Given('the service is running') do
-    uri = URI('http://127.0.0.1:3000/healthcheck')
-    response = Net::HTTP.get_response(uri) 
-    expect(response.code).to eq "200"
-  end
+Given('the service is running') do
+  uri = URI('http://127.0.0.1:3000/healthcheck')
+  response = Net::HTTP.get_response(uri) 
+  expect(response.code).to eq "200"
+end
 
-  # GET
-  When('I send HTTP Get request') do
-    uri = URI('http://127.0.0.1:3000/books')
-    @response = Net::HTTP.get_response(uri)
-  end
-  
-  Then('I receive a valid {int} response code') do |int|
-    expect(@response.code).to eq(int.to_s)
-  end
-  
-  Then('I get confirmation that there are books in the database') do
-    expect(@response.body.size).to be > 0
-  end
-  
-  Then('I get confirmation that books match the book json schema') do
-    expect(@response).to match_response_schema("book")
-  end
+# GET
+When('I send HTTP Get request') do
+  uri = URI('http://127.0.0.1:3000/books')
+  @response = Net::HTTP.get_response(uri)
+end
+
+Then('I receive a valid {int} response code') do |int|
+  expect(@response.code).to eq(int.to_s)
+end
+
+Then('I get confirmation that there are books in the database') do
+  expect(@response.body.size).to be > 0
+end
+
+# Then('I get confirmation that books match the book json schema') do
+#   # @user_response = JSON.parse(@response.body)
+#   # the response body is a JSON string that contains an array of books (aka objects) => confirmed by "p"  
+#   # "[{\"id\":1,\"title\":\"Nine Coaches Waiting\...........
+#   expect(@response).to match_response_schema("book")
+# end
+
+# Fetch one book - The second scenario
+
+When('I send HTTP Get request for book {int}') do |book_id|
+  uri = URI("http://127.0.0.1:3000/books/#{book_id}")
+  @response = Net::HTTP.get_response(uri)
+end
+
+Then('response body matches the JSON schema for {string}') do |schema_name|
+  # response.body is a string
+  # if I pass response.body then the matcher will call .body again on the string (aka the body string)
+  #  schema_name  == "book" (book.json)
+  expect(@response).to match_response_schema(schema_name)
+end
+
+Then('I get info on that specific book') do
+  pending # Write code here that turns the phrase above into concrete actions
+end
   
 
-  # POST
-  When('I send HTTP POST request') do
-    uri = URI('http://127.0.0.1:3000/books')    
-    http = Net::HTTP.start(uri.host, uri.port) do |http|
-      request = Net::HTTP::Post.new(uri)
-      request['Content-Type']='application/json'
-      @new_book = {
-        title: "random title",
-        author: "random author",
-        genre: "random genre",
-        isbn: "553877793955-X",
-        language: "randomese"
-      }
-      # without ".to_json" : error => undefined method `bytesize' for {"title"=>"random title", "author"=>"random author", "genre"=>"random genre", "isbn"=>"553877793955-X", "language"=>"randomese"}:Hash (NoMethodError)
-    request.body = @new_book.to_json
-    @response = http.request(request)
+# POST
+When('I send HTTP POST request') do
+  uri = URI('http://127.0.0.1:3000/books')    
+  http = Net::HTTP.start(uri.host, uri.port) do |http|
+    request = Net::HTTP::Post.new(uri)
+    request['Content-Type']='application/json'
+    @new_book = {
+      title: "random title",
+      author: "random author",
+      genre: "random genre",
+      isbn: "553877793955-X",
+      language: "randomese"
+    }
+    # without ".to_json" : error => undefined method `bytesize' for {"title"=>"random title", "author"=>"random author", "genre"=>"random genre", "isbn"=>"553877793955-X", "language"=>"randomese"}:Hash (NoMethodError)
+  request.body = @new_book.to_json
+  @response = http.request(request)
 
-    # p @response #  #<Net::HTTPOK 200 OK readbody=true>
-    # p @response.body # "{\"id\":173,\"title\":\"random title\",\"author\":\"random author\",\"genre\":\"random genre\",\"isbn\":\"553877793955-X\",\"language\":\"randomese\",\"created_at\":\"2022-03-02T13:25:30.024Z\",\"updated_at\":\"2022-03-02T13:25:30.024Z\"}"
-    # p @response.code # "200"
-    # p @response.message # "OK"
-  end
+  # p @response #  #<Net::HTTPOK 200 OK readbody=true>
+  # p @response.body # "{\"id\":173,\"title\":\"random title\",\"author\":\"random author\",\"genre\":\"random genre\",\"isbn\":\"553877793955-X\",\"language\":\"randomese\",\"created_at\":\"2022-03-02T13:25:30.024Z\",\"updated_at\":\"2022-03-02T13:25:30.024Z\"}"
+  # p @response.code # "200"
+  # p @response.message # "OK"
+end
 end
 
 Then('I get info on that specific user') do
-  uri = URI('http://127.0.0.1:3000/books') 
+  # uri = URI('http://127.0.0.1:3000/books') 
+  @user_response = JSON.parse(@response.body)
     expect(@response).to match_response_schema("book")
     # I don't get why @response.body didn't match response schema, but @response did!!
-  end
-  
+end
+
+
+# # PUT
+#   When('I sent an HTTP PUT request') do
+#     # is it better to enter #{int} or something here instead of "5"?
+#     uri = URI('http://127.0.0.1:3000/books/5') 
+#     @request = Net::HTTP::Put.new(uri)
+#     @request['Content-Type']='application/json'
+#     @updated_book = @request.set_form_data(title: "updated title",
+#       author: "updated author",
+#       genre: "updated genre",
+#       isbn: "updated 553877793955-X",
+#       language: "updated lang")
+#     @request.body = @updated_book
+#     @response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+#       http.request(@updated_request)
+#     end
+
+#   end
+
+#   Then('I get a valid {int} response code') do |int|
+#     expect(@response.code).to eq(int.to_s)
+#   end
+
+#   Then('I get the updated info on the book') do
+#     pending # Write code here that turns the phrase above into concrete actions
+#   end

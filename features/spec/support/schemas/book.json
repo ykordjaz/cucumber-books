@@ -1,5 +1,5 @@
 {
-    "type": "onject",
+    "type": "object",
     "required": [
       "title",
       "author",
