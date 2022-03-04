@@ -67,43 +67,48 @@ When('I send HTTP POST request') do
   request.body = @new_book.to_json
   @response = http.request(request)
 
-  # p @response #  #<Net::HTTPOK 200 OK readbody=true>
-  # p @response.body # "{\"id\":173,\"title\":\"random title\",\"author\":\"random author\",\"genre\":\"random genre\",\"isbn\":\"553877793955-X\",\"language\":\"randomese\",\"created_at\":\"2022-03-02T13:25:30.024Z\",\"updated_at\":\"2022-03-02T13:25:30.024Z\"}"
-  # p @response.code # "200"
-  # p @response.message # "OK"
-end
-end
-
-Then('I get info on that specific user') do
-  # uri = URI('http://127.0.0.1:3000/books') 
-  @user_response = JSON.parse(@response.body)
-    expect(@response).to match_response_schema("book")
-    # I don't get why @response.body didn't match response schema, but @response did!!
+  # p @response #  #<Net::HTTPOK 200 OK readbody=true> => it already includes the response body
+  # p @response.body # "{\"id\":173,\"title\":\"random title\",\"author\":\"random author\"....}"
+  end 
 end
 
 
 # # PUT
-#   When('I sent an HTTP PUT request') do
-#     # is it better to enter #{int} or something here instead of "5"?
-#     uri = URI('http://127.0.0.1:3000/books/5') 
-#     @request = Net::HTTP::Put.new(uri)
-#     @request['Content-Type']='application/json'
-#     @updated_book = @request.set_form_data(title: "updated title",
-#       author: "updated author",
-#       genre: "updated genre",
-#       isbn: "updated 553877793955-X",
-#       language: "updated lang")
-#     @request.body = @updated_book
-#     @response = Net::HTTP.start(uri.hostname, uri.port) do |http|
-#       http.request(@updated_request)
-#     end
+When('I send an HTTP PUT request for book {int}') do |id| 
+  uri = URI("http://127.0.0.1:3000/books/#{id}") 
+  http = Net::HTTP.new(uri.host, uri.port)
+  @request = Net::HTTP::Put.new(uri)
+  @request['Content-Type']='application/json'
+  @updated_book = @request.set_form_data(
+    title: "updated title",
+    author: "updated author",
+    genre: "updated genre",
+    isbn: "updated 553877793955-X",
+    language: "updated lang"
+    )
+  @request.body = @updated_book
+  @updated_request = Net::HTTP::Get.new(uri)
+  @response = http.request(@updated_request)
+  end
 
-#   end
+Then('I get a valid {int} response code') do |int|
+    expect(@response.code).to eq(int.to_s)
+end
 
-#   Then('I get a valid {int} response code') do |int|
-#     expect(@response.code).to eq(int.to_s)
-#   end
+Then('the updated book matches the json schema') do
+  expect(@response).to match_response_schema("book")
+end
 
-#   Then('I get the updated info on the book') do
-#     pending # Write code here that turns the phrase above into concrete actions
-#   end
+When('I send an HTTP DELETE request for book {int}') do |id|
+  uri = URI("http://127.0.0.1:3000/books/#{id}") 
+  http = Net::HTTP.new(uri.host, uri.port)
+  @request = Net::HTTP::Delete.new(uri.path)
+  @response = http.request(@request)
+  puts "deleted #{@response}"
+  @updated_request = Net::HTTP::Get.new(uri)
+  @updated_response = http.request(@updated_request)
+end
+
+Then('I get an HTTP response code {int}') do |int|
+expect(@updated_response.code).to eq("#{int}")
+end
